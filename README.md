@@ -32,4 +32,37 @@ Configure domain groups in **Settings** (gear icon or right-click the extension 
 - **Regex pattern** — matched against the full page URL (e.g. `/content/mysite`)
 - **Domains** — list of hosts for that content (e.g. `localhost:4502`, `https://author-p123-e456.adobeaemcloud.com`)
 
-When a match is found, the Environment tab lists all configured domains. Selecting one swaps the origin while keeping the full path intact. Omit the protocol from a domain entry to preserve whatever the current page uses.
+
+## Distribution & Production Build
+
+To build the extension for installation (so it's not just a temporary developer load), you can package it into a ZIP file.
+
+### 1. Build the package
+Run the following command in the terminal:
+
+```bash
+npm run build
+```
+
+This will create a `dist/aem-quicklinks.zip` file.
+
+### 2. Permanent Installation
+
+#### Chrome / Microsoft Edge
+The most "permanent" way to install an extension is via the official web stores.
+- **Chrome Web Store**: Upload the generated `dist/aem-quicklinks.zip` to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole/).
+- **Edge Add-ons**: Upload the same ZIP to the [Microsoft Partner Center](https://partner.microsoft.com/en-us/dashboard/microsoftedge/overview).
+
+*Note: For private use without the store, you can keep the extension loaded via "unpacked," but it will remain in developer mode.*
+
+#### Firefox
+Firefox requires extensions to be signed by Mozilla to be installed permanently.
+1. Submit the `dist/aem-quicklinks.zip` to [AMO (Add-ons for Firefox)](https://addons.mozilla.org/en-US/developers/addon/submit/distribution).
+2. Choose "On your own" if you want to distribute it privately.
+3. Once signed, you will receive an `.xpi` file that can be installed in any Firefox browser.
+
+## Icons (Required for Stores)
+Before submitting to stores, ensure you create an `icons/` folder and add:
+- `icon16.png`
+- `icon48.png`
+- `icon128.png` (Crucial for the store listing)

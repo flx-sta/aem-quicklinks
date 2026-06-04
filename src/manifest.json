@@ -2,7 +2,12 @@
   "manifest_version": 3,
   "name": "AEM Quicklinks",
   "description": "Fast navigation between AEM editing environments — Preview, Editor, Properties, and CRXDE",
-  "version": "2.0",
+  "version": "3.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "AEM Quicklinks"
@@ -26,7 +31,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "aem-quicklinks@aem-quicklinks"
+      "id": "aem-quicklinks@flx-sta"
     }
   }
 }
