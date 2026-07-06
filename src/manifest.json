@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AEM Quicklinks",
   "description": "Fast navigation between AEM editing environments — Preview, Editor, Properties, and CRXDE",
-  "version": "3.0",
+  "version": "<PKG_VERSION>",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
