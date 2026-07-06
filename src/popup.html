@@ -1,433 +1,501 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      width: 380px;
-      background: #0b0b14;
-      color: #c8c8e0;
-      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      overflow: hidden;
-    }
+      body {
+        width: 380px;
+        background: #0b0b14;
+        color: #c8c8e0;
+        font-family:
+          "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", "Consolas",
+          monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow: hidden;
+      }
 
-    /* Subtle scanline texture */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(200, 200, 240, 0.006) 2px,
-        rgba(200, 200, 240, 0.006) 4px
-      );
-      pointer-events: none;
-      z-index: 900;
-    }
+      /* Subtle scanline texture */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(200, 200, 240, 0.006) 2px,
+          rgba(200, 200, 240, 0.006) 4px
+        );
+        pointer-events: none;
+        z-index: 900;
+      }
 
-    /* Top accent bar */
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #4ecdc4, #c084fc, #ffd93d);
-      z-index: 1000;
-    }
+      /* Top accent bar */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #4ecdc4, #c084fc, #ffd93d);
+        z-index: 1000;
+      }
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px 10px;
-      border-bottom: 1px solid #1a1a30;
-    }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px 10px;
+        border-bottom: 1px solid #1a1a30;
+      }
 
-    .logo {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: #e0e0f0;
-    }
+      .logo {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #e0e0f0;
+      }
 
-    .logo-accent {
-      color: #4ecdc4;
-    }
+      .logo-accent {
+        color: #4ecdc4;
+      }
 
-    #settings {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      color: #b8b8d5;
-      cursor: pointer;
-      font-size: 15px;
-      text-decoration: none;
-      transition: all 0.2s;
-      background: transparent;
-      border: 1px solid transparent;
-    }
-    #settings:hover {
-      color: #f0f0ff;
-      background: #141428;
-      border-color: #252540;
-    }
+      #settings {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        color: #b8b8d5;
+        cursor: pointer;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.2s;
+        background: transparent;
+        border: 1px solid transparent;
+      }
+      #settings:hover {
+        color: #f0f0ff;
+        background: #141428;
+        border-color: #252540;
+      }
 
-    /* Status bar */
-    #status-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      font-size: 11px;
-    }
+      /* Status bar */
+      #status-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        font-size: 11px;
+      }
 
-    #status-icon {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #ffd93d;
-      flex-shrink: 0;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
+      #status-icon {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ffd93d;
+        flex-shrink: 0;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
 
-    #status-icon.detected {
-      background: #4ecdc4;
-      box-shadow: 0 0 6px rgba(78, 205, 196, 0.4);
-      animation: none;
-    }
+      #status-icon.detected {
+        background: #4ecdc4;
+        box-shadow: 0 0 6px rgba(78, 205, 196, 0.4);
+        animation: none;
+      }
 
-    #status-icon.not-detected {
-      background: #ff6b6b;
-      animation: none;
-    }
+      #status-icon.not-detected {
+        background: #ff6b6b;
+        animation: none;
+      }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
 
-    #status-text {
-      color: #d8d8ee;
-    }
+      #status-text {
+        color: #d8d8ee;
+      }
 
-    /* Content path display */
-    #path-display {
-      display: none;
-      padding: 0 16px 12px;
-      font-size: 10px;
-      color: #c0c0dd;
-      word-break: break-all;
-      line-height: 1.4;
-    }
+      /* Content path display */
+      #path-display {
+        display: none;
+        padding: 0 16px 12px;
+        font-size: 10px;
+        color: #c0c0dd;
+        word-break: break-all;
+        line-height: 1.4;
+      }
 
-    /* Tab bar */
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid #1a1a30;
-      padding: 0 12px;
-    }
+      /* Tab bar */
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #1a1a30;
+        padding: 0 12px;
+      }
 
-    .tab {
-      background: none;
-      border: none;
-      color: #b8b8d5;
-      font-family: inherit;
-      font-size: 11px;
-      padding: 9px 14px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-      position: relative;
-      letter-spacing: 0.02em;
-    }
+      .tab {
+        background: none;
+        border: none;
+        color: #b8b8d5;
+        font-family: inherit;
+        font-size: 11px;
+        padding: 9px 14px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        position: relative;
+        letter-spacing: 0.02em;
+      }
 
-    .tab:hover {
-      color: #e8e8f8;
-    }
+      .tab:hover {
+        color: #e8e8f8;
+      }
 
-    .tab.active {
-      color: #4ecdc4;
-      border-bottom-color: #4ecdc4;
-    }
+      .tab.active {
+        color: #4ecdc4;
+        border-bottom-color: #4ecdc4;
+      }
 
-    /* Dot indicator for env tab when configs exist */
-    .tab.has-data::after {
-      content: '';
-      width: 5px;
-      height: 5px;
-      background: #4ecdc4;
-      border-radius: 50%;
-      position: absolute;
-      top: 7px;
-      right: 5px;
-    }
+      /* Dot indicator for env tab when configs exist */
+      .tab.has-data::after {
+        content: "";
+        width: 5px;
+        height: 5px;
+        background: #4ecdc4;
+        border-radius: 50%;
+        position: absolute;
+        top: 7px;
+        right: 5px;
+      }
 
-    /* Panels */
-    .panel {
-      padding: 14px 16px 16px;
-    }
+      /* Panels */
+      .panel {
+        padding: 14px 16px 16px;
+      }
 
-    /* Quick link grid */
-    .link-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+      /* Quick link grid */
+      .link-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
 
-    .link-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 13px 14px;
-      background: #111122;
-      border: 1px solid #222240;
-      border-radius: 6px;
-      color: #e0e0f0;
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      position: relative;
-      overflow: hidden;
-    }
+      .link-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 14px;
+        background: #111122;
+        border: 1px solid #222240;
+        border-radius: 6px;
+        color: #e0e0f0;
+        font-family: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        position: relative;
+        overflow: hidden;
+      }
 
-    .link-btn::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      transition: width 0.15s ease;
-    }
+      .link-btn::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        transition: width 0.15s ease;
+      }
 
-    .link-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-    }
+      .link-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      }
 
-    .link-btn:active {
-      transform: translateY(0);
-    }
+      .link-btn:active {
+        transform: translateY(0);
+      }
 
-    .link-btn.flash {
-      transform: scale(0.97);
-      opacity: 0.75;
-    }
+      .link-btn.flash {
+        transform: scale(0.97);
+        opacity: 0.75;
+      }
 
-    /* Color variants */
-    .link-btn.preview::before { background: #4ecdc4; }
-    .link-btn.preview:hover { border-color: #4ecdc480; background: #0e1a22; }
+      /* Color variants */
+      .link-btn.preview::before {
+        background: #4ecdc4;
+      }
+      .link-btn.preview:hover {
+        border-color: #4ecdc480;
+        background: #0e1a22;
+      }
 
-    .link-btn.editor::before { background: #ffd93d; }
-    .link-btn.editor:hover { border-color: #ffd93d80; background: #1a1810; }
+      .link-btn.editor::before {
+        background: #ffd93d;
+      }
+      .link-btn.editor:hover {
+        border-color: #ffd93d80;
+        background: #1a1810;
+      }
 
-    .link-btn.properties::before { background: #6bcb77; }
-    .link-btn.properties:hover { border-color: #6bcb7780; background: #101a12; }
+      .link-btn.properties::before {
+        background: #6bcb77;
+      }
+      .link-btn.properties:hover {
+        border-color: #6bcb7780;
+        background: #101a12;
+      }
 
-    .link-btn.crxde::before { background: #c084fc; }
-    .link-btn.crxde:hover { border-color: #c084fc80; background: #16101f; }
+      .link-btn.crxde::before {
+        background: #c084fc;
+      }
+      .link-btn.crxde:hover {
+        border-color: #c084fc80;
+        background: #16101f;
+      }
 
-    .link-label {
-      font-weight: 500;
-    }
+      .link-label {
+        font-weight: 500;
+      }
 
-    kbd {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 5px;
-      background: #0b0b14;
-      border: 1px solid #2a2a44;
-      border-radius: 3px;
-      font-family: inherit;
-      font-size: 10px;
-      color: #c0c0dd;
-      box-shadow: 0 1px 0 #1a1a30;
-    }
+      kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        background: #0b0b14;
+        border: 1px solid #2a2a44;
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: 10px;
+        color: #c0c0dd;
+        box-shadow: 0 1px 0 #1a1a30;
+      }
 
-    /* Environment panel */
-    .env-label {
-      display: block;
-      font-size: 10px;
-      color: #c0c0dd;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
+      /* Environment panel */
+      .env-label {
+        display: block;
+        font-size: 10px;
+        color: #c0c0dd;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
 
-    .env-list {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-    }
+      .env-list {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+      }
 
-    .env-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: #111122;
-      border: 1px solid #222240;
-      border-radius: 6px;
-      color: #e0e0f0;
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      width: 100%;
-      text-align: left;
-    }
+      .env-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: #111122;
+        border: 1px solid #222240;
+        border-radius: 6px;
+        color: #e0e0f0;
+        font-family: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        width: 100%;
+        text-align: left;
+      }
 
-    .env-item:hover {
-      border-color: #4ecdc480;
-      background: #0e1a22;
-      transform: translateY(-1px);
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
-    }
+      .env-item:hover {
+        border-color: #4ecdc480;
+        background: #0e1a22;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+      }
 
-    .env-item:active {
-      transform: translateY(0);
-    }
+      .env-item:active {
+        transform: translateY(0);
+      }
 
-    .env-item.current {
-      border-color: #4ecdc4;
-      background: #0f1c24;
-    }
+      .env-item.current {
+        border-color: #4ecdc4;
+        background: #0f1c24;
+      }
 
-    .env-item.current::after {
-      content: 'current';
-      margin-left: auto;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #4ecdc4;
-      opacity: 0.7;
-    }
+      .env-item.current::after {
+        content: "current";
+        margin-left: auto;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #4ecdc4;
+        opacity: 0.7;
+      }
 
-    .env-item.flash {
-      transform: scale(0.97);
-      opacity: 0.75;
-    }
+      .env-item.flash {
+        transform: scale(0.97);
+        opacity: 0.75;
+      }
 
-    .env-item kbd {
-      flex-shrink: 0;
-    }
+      .env-item kbd {
+        flex-shrink: 0;
+      }
 
-    .env-domain {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      .env-domain {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    .no-env {
-      color: #b0b0cc;
-      font-size: 11px;
-      text-align: center;
-      padding: 18px 0;
-      line-height: 1.7;
-    }
+      .no-env {
+        color: #b0b0cc;
+        font-size: 11px;
+        text-align: center;
+        padding: 18px 0;
+        line-height: 1.7;
+      }
 
-    .no-env a {
-      color: #4ecdc4;
-      text-decoration: none;
-    }
-    .no-env a:hover {
-      text-decoration: underline;
-    }
+      .no-env a {
+        color: #4ecdc4;
+        text-decoration: none;
+      }
+      .no-env a:hover {
+        text-decoration: underline;
+      }
 
-    /* Tab kbd styling */
-    .tab kbd {
-      font-size: 9px;
-      height: 16px;
-      min-width: 16px;
-      margin-left: 4px;
-      vertical-align: middle;
-      opacity: 0.5;
-    }
+      /* Tab kbd styling */
+      .tab kbd {
+        font-size: 9px;
+        height: 16px;
+        min-width: 16px;
+        margin-left: 4px;
+        vertical-align: middle;
+        opacity: 0.5;
+      }
 
-    .tab.active kbd {
-      opacity: 0.7;
-    }
+      .tab.active kbd {
+        opacity: 0.7;
+      }
 
-    /* Disabled state */
-    .link-btn:disabled {
-      opacity: 0.25;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
+      /* Disabled state */
+      .link-btn:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
 
-    .link-btn:disabled:hover {
-      border-color: #222240;
-      background: #111122;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <span class="logo"><span class="logo-accent">&gt;</span> AEM Quicklinks</span>
-    <a id="settings" title="Settings">&#9881;</a>
-  </header>
+      .link-btn:disabled:hover {
+        border-color: #222240;
+        background: #111122;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="logo"
+        ><span class="logo-accent">&gt;</span> AEM Quicklinks</span
+      >
+      <a id="settings" title="Settings">&#9881;</a>
+    </header>
 
-  <div id="status-bar">
-    <span id="status-icon"></span>
-    <span id="status-text">Detecting&hellip;</span>
-  </div>
-
-  <div id="path-display"></div>
-
-  <nav class="tabs">
-    <button class="tab active" data-panel="navigate" id="nav-tab">Navigate <kbd>N</kbd></button>
-    <button class="tab" data-panel="environment" id="env-tab">Environment <kbd>D</kbd></button>
-  </nav>
-
-  <section id="navigate" class="panel">
-    <div class="link-grid">
-      <button id="btn-preview" class="link-btn preview" disabled title="Preview (P)">
-        <span class="link-label">Preview</span>
-        <kbd>P</kbd>
-      </button>
-      <button id="btn-editor" class="link-btn editor" disabled title="Editor (E)">
-        <span class="link-label">Editor</span>
-        <kbd>E</kbd>
-      </button>
-      <button id="btn-properties" class="link-btn properties" disabled title="Properties (R)">
-        <span class="link-label">Properties</span>
-        <kbd>R</kbd>
-      </button>
-      <button id="btn-crxde" class="link-btn crxde" disabled title="CRXDE (C)">
-        <span class="link-label">CRXDE</span>
-        <kbd>C</kbd>
-      </button>
+    <div id="status-bar">
+      <span id="status-icon"></span>
+      <span id="status-text">Detecting&hellip;</span>
     </div>
-  </section>
 
-  <section id="environment" class="panel" style="display: none;">
-    <span class="env-label">Switch environment <kbd>D</kbd> then <kbd>1</kbd>-<kbd>9</kbd></span>
-    <div class="env-list" id="env-list"></div>
-    <p id="no-env" class="no-env">No matching environment found.<br><a href="#" id="open-settings">Configure domains in Settings</a></p>
-  </section>
+    <div id="path-display"></div>
 
+    <nav class="tabs">
+      <button class="tab active" data-panel="navigate" id="nav-tab">
+        Navigate <kbd>N</kbd>
+      </button>
+      <button class="tab" data-panel="environment" id="env-tab">
+        Environment <kbd>D</kbd>
+      </button>
+    </nav>
 
+    <section id="navigate" class="panel">
+      <div class="link-grid">
+        <button
+          id="btn-preview"
+          class="link-btn preview"
+          disabled
+          title="Preview (P)"
+        >
+          <span class="link-label">Preview</span>
+          <kbd>P</kbd>
+        </button>
+        <button
+          id="btn-editor"
+          class="link-btn editor"
+          disabled
+          title="Editor (E)"
+        >
+          <span class="link-label">Editor</span>
+          <kbd>E</kbd>
+        </button>
+        <button
+          id="btn-properties"
+          class="link-btn properties"
+          disabled
+          title="Properties (R)"
+        >
+          <span class="link-label">Properties</span>
+          <kbd>R</kbd>
+        </button>
+        <button
+          id="btn-crxde"
+          class="link-btn crxde"
+          disabled
+          title="CRXDE (C)"
+        >
+          <span class="link-label">CRXDE</span>
+          <kbd>C</kbd>
+        </button>
+        <button
+          id="btn-sites"
+          class="link-btn sites"
+          disabled
+          title="Sites (S)"
+        >
+          <span class="link-label">Sites</span>
+          <kbd>S</kbd>
+        </button>
+      </div>
+    </section>
 
-  <script type="module" src="popup.js"></script>
-</body>
+    <section id="environment" class="panel" style="display: none">
+      <span class="env-label"
+        >Switch environment <kbd>D</kbd> then <kbd>1</kbd>-<kbd>9</kbd></span
+      >
+      <div class="env-list" id="env-list"></div>
+      <p id="no-env" class="no-env">
+        No matching environment found.<br /><a href="#" id="open-settings"
+          >Configure domains in Settings</a
+        >
+      </p>
+    </section>
+
+    <script type="module" src="popup.js"></script>
+  </body>
 </html>
