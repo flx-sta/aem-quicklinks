@@ -85,7 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const source = isPropertiesPage ? currentUrl.search : currentUrl.href;
       const match = source.match(/(\/content\/[^?#]+)/);
       if (match) {
-        contentPath = match[0].replace(/\.html$/i, "");
+        let path = match[0];
+        const htmlIndex = path.indexOf(".html");
+        if (htmlIndex !== -1) {
+          path = path.substring(0, htmlIndex);
+        }
+        contentPath = path;
       }
     } catch {
       // Not an AEM page — contentPath stays null

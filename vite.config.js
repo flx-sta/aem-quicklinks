@@ -24,7 +24,7 @@ export default defineConfig({
     zipPack({
       inDir: "dist",
       outDir: "dist",
-      outFileName: "aem-quicklinks.xpi",
+      outFileName: `aem-quicklinks-${pkg.version}.xpi`,
     }),
   ],
 });
