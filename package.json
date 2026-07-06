@@ -1,6 +1,6 @@
 {
     "name": "aem-quicklinks",
-    "version": "3.2.1",
+    "version": "3.2.2",
     "description": "Chrome extension for fast navigation between AEM editing environments.",
     "scripts": {
         "dev": "vite",
