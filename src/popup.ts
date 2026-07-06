@@ -1,17 +1,37 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const $ = (id) => document.getElementById(id);
+//#region Types
 
-  // ── Tab switching ──────────────────────────────────────────────
+interface DomainConfig {
+  regex: string;
+  domains: string[];
+}
+
+interface LinkUrls {
+  preview?: string;
+  editor?: string;
+  properties?: string;
+  crxde?: string;
+  sites?: string;
+}
+
+//#endregion
+document.addEventListener("DOMContentLoaded", () => {
+  const $ = (id: string) => document.getElementById(id);
+
+  //#region Tab switching
+
   document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => switchTab(tab.dataset.panel));
+    tab.addEventListener("click", () => {
+      const panel = (tab as HTMLElement).dataset.panel;
+      if (panel) switchTab(panel);
+    });
   });
 
-  function switchTab(panelId) {
+  function switchTab(panelId: string) {
     document.querySelectorAll(".tab").forEach((t) => {
       t.classList.remove("active");
     });
     document.querySelectorAll(".panel").forEach((p) => {
-      p.style.display = "none";
+      (p as HTMLElement).style.display = "none";
     });
     const tab = document.querySelector(`.tab[data-panel="${panelId}"]`);
     if (tab) tab.classList.add("active");
@@ -19,25 +39,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panel) panel.style.display = "";
   }
 
-  // ── Settings links ─────────────────────────────────────────────
-  $("settings").addEventListener("click", (e) => {
+  //#endregion
+  //#region Settings links
+
+  $("settings")?.addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
   });
 
-  $("open-settings").addEventListener("click", (e) => {
+  $("open-settings")?.addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
   });
 
-  // ── State ──────────────────────────────────────────────────────
-  let linkUrls = {};
-  let currentUrl = null;
-  let envDomains = [];
+  //#endregion
+  //#region State
 
-  // ── Single chrome.tabs.query — fixes the double-click bug ─────
-  // Previously two independent queries raced for DOM and #status.
-  // Now one query drives both flows sequentially.
+  let linkUrls: LinkUrls = {};
+  let currentUrl: URL | null = null;
+  let envDomains: string[] = [];
+
+  //#endregion
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs || !tabs[0] || !tabs[0].url) {
       showStatus("not-detected", "Cannot access tab");
@@ -51,11 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // ── AEM detection ──────────────────────────────────────────
+    //#region AEM detection
+
     const isPropertiesPage = currentUrl.href.includes(
       "/mnt/overlay/wcm/core/content/sites/properties",
     );
-    let contentPath = null;
+    let contentPath: string | null = null;
 
     try {
       const source = isPropertiesPage ? currentUrl.search : currentUrl.href;
@@ -79,17 +103,27 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       showStatus("detected", "AEM Page Detected");
-      $("path-display").textContent = contentPath;
-      $("path-display").style.display = "block";
+      const pathDisplay = $("path-display");
+      if (pathDisplay) {
+        pathDisplay.textContent = contentPath;
+        pathDisplay.style.display = "block";
+      }
 
-      $("btn-preview").onclick = () => openLink(linkUrls.preview);
-      $("btn-editor").onclick = () => openLink(linkUrls.editor);
-      $("btn-properties").onclick = () => openLink(linkUrls.properties);
-      $("btn-crxde").onclick = () => openLink(linkUrls.crxde);
-      $("btn-sites").onclick = () => openLink(linkUrls.sites);
+      const setupClick = (id: string, url: string | undefined) => {
+        const el = $(id);
+        if (el && url) {
+          el.onclick = () => openLink(url);
+        }
+      };
+
+      setupClick("btn-preview", linkUrls.preview);
+      setupClick("btn-editor", linkUrls.editor);
+      setupClick("btn-properties", linkUrls.properties);
+      setupClick("btn-crxde", linkUrls.crxde);
+      setupClick("btn-sites", linkUrls.sites);
 
       document.querySelectorAll(".link-btn").forEach((btn) => {
-        btn.disabled = false;
+        (btn as HTMLButtonElement).disabled = false;
       });
     } else {
       showStatus("not-detected", "Not an AEM Page");
@@ -97,11 +131,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ── Domain configuration (runs inside the same query) ──────
     chrome.storage.sync.get("domainConfigs", (data) => {
-      if (!data.domainConfigs) return;
+      const configs = data.domainConfigs as DomainConfig[] | undefined;
+      if (!configs || !currentUrl) return;
 
-      const matchedConfigs = data.domainConfigs.filter((config) => {
+      const matchedConfigs = configs.filter((config) => {
         try {
-          return currentUrl.href.match(new RegExp(config.regex));
+          return currentUrl!.href.match(new RegExp(config.regex));
         } catch {
           return false;
         }
@@ -109,18 +144,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (matchedConfigs.length > 0) {
         populateEnvList(matchedConfigs[0].domains, currentUrl);
-        $("env-tab").classList.add("has-data");
+        $("env-tab")?.classList.add("has-data");
       }
     });
   });
 
-  // ── Hotkeys ────────────────────────────────────────────────────
+  //#endregion
+  //#region Hotkeys
+
   function isEnvTabActive() {
-    return $("env-tab").classList.contains("active");
+    return $("env-tab")?.classList.contains("active") ?? false;
   }
 
-  document.addEventListener("keydown", (e) => {
-    if (e.target.tagName === "INPUT") return;
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target && target.tagName === "INPUT") return;
 
     const key = e.key.toLowerCase();
 
@@ -132,16 +170,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const idx = num - 1;
         if (envDomains[idx] && currentUrl) {
           e.preventDefault();
-          const items = $("env-list").querySelectorAll(".env-item");
-          if (items[idx]) {
-            items[idx].classList.add("flash");
-            setTimeout(() => items[idx].classList.remove("flash"), 120);
+          const envList = $("env-list");
+          if (envList) {
+            const items = envList.querySelectorAll(".env-item");
+            if (items[idx]) {
+              items[idx].classList.add("flash");
+              setTimeout(() => items[idx].classList.remove("flash"), 120);
+            }
           }
           swapDomain(envDomains[idx], currentUrl);
         }
       } else {
         // On navigate tab: quick links by number
-        const linkMap = {
+        const linkMap: Record<number, keyof LinkUrls> = {
           1: "preview",
           2: "editor",
           3: "properties",
@@ -152,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           flashAndOpen(
             `btn-${linkKey === "crxde" ? "crxde" : linkKey}`,
-            linkUrls[linkKey],
+            linkUrls[linkKey]!,
           );
         }
       }
@@ -195,18 +236,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ── Helpers ────────────────────────────────────────────────────
+  //#endregion
+  //#region Helpers
 
-  function showStatus(state, text) {
-    $("status-icon").className = state;
-    $("status-text").textContent = text;
+  function showStatus(state: string, text: string) {
+    const statusIcon = $("status-icon");
+    if (statusIcon) statusIcon.className = state;
+    const statusText = $("status-text");
+    if (statusText) statusText.textContent = text;
   }
 
-  function openLink(url) {
+  function openLink(url: string) {
     chrome.tabs.create({ url });
   }
 
-  function flashAndOpen(btnId, url) {
+  function flashAndOpen(btnId: string, url: string) {
     const btn = $(btnId);
     if (btn) {
       btn.classList.add("flash");
@@ -215,13 +259,14 @@ document.addEventListener("DOMContentLoaded", () => {
     openLink(url);
   }
 
-  function normalizeDomain(domain) {
+  function normalizeDomain(domain: string) {
     return domain.replace(/^(https?:\/\/)?/i, "").replace(/\/+$/, "");
   }
 
-  function populateEnvList(domains, pageUrl) {
+  function populateEnvList(domains: string[], pageUrl: URL) {
     const list = $("env-list");
     const noEnv = $("no-env");
+    if (!list || !noEnv) return;
     list.innerHTML = "";
 
     const normalizedCurrent = normalizeDomain(pageUrl.origin);
@@ -239,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const kbd = document.createElement("kbd");
-      kbd.textContent = count;
+      kbd.textContent = String(count);
 
       const span = document.createElement("span");
       span.className = "env-domain";
@@ -259,9 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function swapDomain(newDomain, pageUrl) {
-    // ── Protocol preservation ──────────────────────────────────
-    // Use the current page's protocol instead of defaulting to http://
+  function swapDomain(newDomain: string, pageUrl: URL) {
     let newUrlBase;
     if (newDomain.includes("://")) {
       newUrlBase = newDomain;
@@ -273,4 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const newUrl = pageUrl.href.replace(pageUrl.origin, newUrlBase);
     openLink(newUrl);
   }
+
+  //#endregion
 });
