@@ -45,11 +45,13 @@ document.addEventListener("DOMContentLoaded", () => {
   $("settings")?.addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
+    window.close();
   });
 
   $("open-settings")?.addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
+    window.close();
   });
 
   //#endregion
@@ -192,12 +194,13 @@ document.addEventListener("DOMContentLoaded", () => {
           2: "editor",
           3: "properties",
           4: "crxde",
+          5: "sites",
         };
         const linkKey = linkMap[num];
         if (linkKey && linkUrls[linkKey]) {
           e.preventDefault();
           flashAndOpen(
-            `btn-${linkKey === "crxde" ? "crxde" : linkKey}`,
+            `btn-${linkKey}`,
             linkUrls[linkKey]!,
           );
         }
@@ -230,6 +233,12 @@ document.addEventListener("DOMContentLoaded", () => {
           flashAndOpen("btn-crxde", linkUrls.crxde);
         }
         break;
+      case "s":
+        if (linkUrls.sites) {
+          e.preventDefault();
+          flashAndOpen("btn-sites", linkUrls.sites);
+        }
+        break;
       case "d":
         e.preventDefault();
         switchTab("environment");
@@ -253,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openLink(url: string) {
     chrome.tabs.create({ url });
+    window.close();
   }
 
   function flashAndOpen(btnId: string, url: string) {
