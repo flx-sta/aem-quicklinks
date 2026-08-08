@@ -60,6 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let linkUrls: LinkUrls = {};
   let currentUrl: URL | null = null;
   let envDomains: string[] = [];
+  let currentCookieStoreId: string | undefined = undefined;
+  let currentTabIndex: number | undefined = undefined;
 
   //#endregion
 
@@ -68,6 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
       showStatus("not-detected", "Cannot access tab");
       return;
     }
+
+    currentCookieStoreId = (tabs[0] as any).cookieStoreId;
+    currentTabIndex = tabs[0].index;
 
     try {
       currentUrl = new URL(tabs[0].url);
@@ -261,7 +266,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openLink(url: string) {
-    chrome.tabs.create({ url });
+    const createProperties: chrome.tabs.CreateProperties & { cookieStoreId?: string } = { url };
+    if (currentCookieStoreId) {
+      createProperties.cookieStoreId = currentCookieStoreId;
+    }
+    if (currentTabIndex !== undefined) {
+      createProperties.index = currentTabIndex + 1;
+    }
+    chrome.tabs.create(createProperties);
     window.close();
   }
 
