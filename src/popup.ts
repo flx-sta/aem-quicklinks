@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUrl: URL | null = null;
   let envDomains: string[] = [];
   let currentCookieStoreId: string | undefined = undefined;
-  let currentTabIndex: number | undefined = undefined;
+  let currentTabId: number | undefined = undefined;
 
   //#endregion
 
@@ -78,8 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    currentCookieStoreId = (tabs[0] as any).cookieStoreId;
-    currentTabIndex = tabs[0].index;
+    const activeTab = tabs[0];
+    currentTabId = activeTab.id;
+    currentCookieStoreId = (activeTab as any).cookieStoreId;
 
     try {
       currentUrl = new URL(tabs[0].url);
@@ -274,11 +275,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openLink(url: string) {
     const createProperties: chrome.tabs.CreateProperties & { cookieStoreId?: string } = { url };
+    if (currentTabId !== undefined) {
+      createProperties.openerTabId = currentTabId;
+    }
     if (currentCookieStoreId) {
       createProperties.cookieStoreId = currentCookieStoreId;
-    }
-    if (currentTabIndex !== undefined) {
-      createProperties.index = currentTabIndex + 1;
     }
     chrome.tabs.create(createProperties);
     window.close();
