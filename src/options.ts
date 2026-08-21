@@ -1,24 +1,30 @@
-interface DomainConfig {
-  regex: string;
-  domains: string[];
-}
+import type { DomainConfig } from "./types";
 
-document
-  .getElementById("addConfig")
-  ?.addEventListener("click", addDomainConfig);
+export function initOptions(): void {
+  document
+    .getElementById("addConfig")
+    ?.addEventListener("click", addDomainConfig);
 
-// Load existing configs on page open
-chrome.storage.sync.get("domainConfigs", (data) => {
-  if (data.domainConfigs) {
-    (data.domainConfigs as DomainConfig[]).forEach((config) => {
-      createConfigElement(config);
+  // Load existing configs on page open
+  if (typeof chrome !== "undefined" && chrome?.storage?.sync) {
+    chrome.storage.sync.get("domainConfigs", (data) => {
+      if (data?.domainConfigs) {
+        (data.domainConfigs as DomainConfig[]).forEach((config) => {
+          createConfigElement(config);
+        });
+      }
     });
   }
-});
 
-function createConfigElement(
+  // Auto-save when regex inputs change
+  document
+    .getElementById("domainConfigs")
+    ?.addEventListener("input", saveConfigs);
+}
+
+export function createConfigElement(
   config: DomainConfig = { regex: "", domains: [] },
-): void {
+): HTMLElement {
   const card = document.createElement("div");
   card.className = "config-card";
 
@@ -102,9 +108,10 @@ function createConfigElement(
   card.appendChild(domainGroup);
 
   document.getElementById("domainConfigs")?.appendChild(card);
+  return card;
 }
 
-function addDomainToList(domain: string, domainList: HTMLUListElement): void {
+export function addDomainToList(domain: string, domainList: HTMLUListElement): HTMLElement {
   const item = document.createElement("li");
   item.className = "domain-item";
 
@@ -123,13 +130,14 @@ function addDomainToList(domain: string, domainList: HTMLUListElement): void {
   item.appendChild(text);
   item.appendChild(removeBtn);
   domainList.appendChild(item);
+  return item;
 }
 
-function addDomainConfig(): void {
-  createConfigElement();
+export function addDomainConfig(): HTMLElement {
+  return createConfigElement();
 }
 
-function saveConfigs(): void {
+export function saveConfigs(): DomainConfig[] {
   const cards = document.querySelectorAll("#domainConfigs .config-card");
   const configs: DomainConfig[] = Array.from(cards).map((card) => {
     const regexInput = card.querySelector(
@@ -142,9 +150,14 @@ function saveConfigs(): void {
     return { regex, domains };
   });
   chrome.storage.sync.set({ domainConfigs: configs });
+  return configs;
 }
 
-// Auto-save when regex inputs change
-document
-  .getElementById("domainConfigs")
-  ?.addEventListener("input", saveConfigs);
+// Auto-start options page when DOM is ready
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initOptions);
+  } else {
+    initOptions();
+  }
+}

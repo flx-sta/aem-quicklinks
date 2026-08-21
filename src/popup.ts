@@ -1,22 +1,14 @@
 import pkg from "../package.json";
 
-//#region Types
-
-interface DomainConfig {
-  regex: string;
-  domains: string[];
-}
-
-interface LinkUrls {
-  preview?: string;
-  editor?: string;
-  properties?: string;
-  crxde?: string;
-  sites?: string;
-}
-
-//#endregion
-document.addEventListener("DOMContentLoaded", () => {
+import type { DomainConfig, LinkUrls } from "./types";
+import {
+  parseAemPath,
+  generateAemLinks,
+  normalizeDomain,
+  swapDomain,
+  findMatchingDomainConfig,
+} from "./utils/aem";
+export function initPopup(): void {
   const $ = (id: string) => document.getElementById(id);
 
   const versionEl = $("version");
@@ -91,36 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //#region AEM detection
 
-    const isPropertiesPage = currentUrl.href.includes(
-      "/mnt/overlay/wcm/core/content/sites/properties",
-    );
-    let contentPath: string | null = null;
-
-    try {
-      const source = isPropertiesPage ? currentUrl.search : currentUrl.href;
-      const match = source.match(/(\/content\/[^?#]+)/);
-      if (match) {
-        let path = match[0];
-        const htmlIndex = path.indexOf(".html");
-        if (htmlIndex !== -1) {
-          path = path.substring(0, htmlIndex);
-        }
-        contentPath = path;
-      }
-    } catch {
-      // Not an AEM page — contentPath stays null
-    }
+    const contentPath = parseAemPath(currentUrl);
 
     if (contentPath) {
-      const baseUrl = currentUrl.origin;
-
-      linkUrls = {
-        preview: `${baseUrl}${contentPath}.html?wcmmode=disabled`,
-        editor: `${baseUrl}/editor.html${contentPath}.html`,
-        properties: `${baseUrl}/mnt/overlay/wcm/core/content/sites/properties.html?item=${contentPath}`,
-        crxde: `${baseUrl}/crx/de/index.jsp#${contentPath}`,
-        sites: `${baseUrl}/sites.html${contentPath}`,
-      };
+      linkUrls = generateAemLinks(currentUrl.origin, contentPath);
 
       showStatus("detected", "AEM Page Detected");
       const pathDisplay = $("path-display");
@@ -154,16 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const configs = data.domainConfigs as DomainConfig[] | undefined;
       if (!configs || !currentUrl) return;
 
-      const matchedConfigs = configs.filter((config) => {
-        try {
-          return currentUrl!.href.match(new RegExp(config.regex));
-        } catch {
-          return false;
-        }
-      });
+      const matchedConfig = findMatchingDomainConfig(configs, currentUrl.href);
 
-      if (matchedConfigs.length > 0) {
-        populateEnvList(matchedConfigs[0].domains, currentUrl);
+      if (matchedConfig) {
+        populateEnvList(matchedConfig.domains, currentUrl);
         $("env-tab")?.classList.add("has-data");
       }
     });
@@ -176,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return $("env-tab")?.classList.contains("active") ?? false;
   }
 
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
+  function handleKeyDown(e: KeyboardEvent) {
     const target = e.target as HTMLElement | null;
     if (target && target.tagName === "INPUT") return;
 
@@ -261,7 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
         switchTab("navigate");
         break;
     }
-  });
+  }
+
+  document.addEventListener("keydown", handleKeyDown);
 
   //#endregion
   //#region Helpers
@@ -325,9 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
       span.className = "env-domain";
       span.textContent = domain;
 
-      btn.appendChild(kbd);
-      btn.appendChild(span);
-      btn.onclick = () => swapDomain(domain, pageUrl);
+      btn.onclick = () => openLink(swapDomain(domain, pageUrl));
 
       list.appendChild(btn);
     });
@@ -339,18 +299,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function swapDomain(newDomain: string, pageUrl: URL) {
-    let newUrlBase;
-    if (newDomain.includes("://")) {
-      newUrlBase = newDomain;
-    } else {
-      newUrlBase = `${pageUrl.protocol}//${newDomain}`;
-    }
-
-    newUrlBase = newUrlBase.replace(/\/+$/, "");
-    const newUrl = pageUrl.href.replace(pageUrl.origin, newUrlBase);
-    openLink(newUrl);
-  }
-
   //#endregion
-});
+}
+
+// Auto-start popup when DOM is ready
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPopup);
+  } else {
+    initPopup();
+  }
+}
