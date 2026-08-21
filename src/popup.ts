@@ -1,3 +1,5 @@
+import pkg from "../package.json";
+
 //#region Types
 
 interface DomainConfig {
@@ -16,6 +18,11 @@ interface LinkUrls {
 //#endregion
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (id: string) => document.getElementById(id);
+
+  const versionEl = $("version");
+  if (versionEl) {
+    versionEl.textContent = `v${pkg.version}`;
+  }
 
   //#region Tab switching
 

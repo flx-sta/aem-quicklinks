@@ -65,6 +65,13 @@ header {
   color: #4ecdc4;
 }
 
+.version {
+  font-size: 10px;
+  font-weight: 400;
+  color: #707090;
+  margin-left: 4px;
+}
+
 #settings {
   display: flex;
   align-items: center;
